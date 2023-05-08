@@ -1,13 +1,18 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
+import path from 'path';
 import { getAccounts, getAccount, createAccount } from './database.js';
 
 const app = express();
+const __dirname = process.cwd();
+
+app.set('view engine', 'ejs')
+app.use(express.static(__dirname + '/public'));
 
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    // send login page
+    res.render('pages/index');
 });
 
 // gets all the accounts
@@ -48,7 +53,7 @@ app.post('/account/login', async (req, res) => {
     try {
         if(await bcrypt.compare(req.body.password, user.password)){
             res.send("Success");
-            // redirect to homepage
+            res.render("pages/home"); // redirect to homepage
         } else {
             res.send("Not Allowed")
         }
