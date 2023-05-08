@@ -4,20 +4,19 @@
     <nav>
         <p class="welcome">Log in to get started</p>
         <img src="/images/logo.png" alt="Logo" class="logo" />
-        <form class="login">
+        <form class="login" method="post">
           <input
             type="text"
             placeholder="username"
             class="login__input login__input--user"
           />
-          <!-- In practice, use type="password" -->
           <input
             type="password"
             placeholder="password"
             maxlength="127"
-            class="login__input login__input--pin"
+            class="login__input login__input--password"
           />
-          <button class="login__btn">&rarr;</button>
+          <button type="submit" class="login__btn">&rarr;</button>
         </form>
     </nav>
 

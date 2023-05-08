@@ -56,7 +56,7 @@ const btnClose = document.querySelector('.form__btn--close');
 const btnSort = document.querySelector('.btn--sort');
 
 const inputLoginUsername = document.querySelector('.login__input--user');
-const inputLoginPin = document.querySelector('.login__input--pin');
+const inputLoginPassword = document.querySelector('.login__input--password');
 const inputTransferTo = document.querySelector('.form__input--to');
 const inputTransferAmount = document.querySelector('.form__input--amount');
 const inputLoanAmount = document.querySelector('.form__input--loan-amount');
@@ -145,15 +145,16 @@ btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
 
   $.ajax({
-    url : '/account/login',
+    url : 'http://localhost:8080/account/login',
     type : 'POST',
     data : {
-      username: inputLoginUsername.value,
-      password: inputLoginPin.value
+      "username": inputLoginUsername.value,
+      "password": inputLoginPassword.value
     },
     success : function(data){
       console.log("Successfully logged in.");
-    }
+    },
+    dataType: "json"
  });
 
   // currentAccount = accounts.find(
@@ -161,7 +162,7 @@ btnLogin.addEventListener('click', function (e) {
   // );
   // console.log(currentAccount);
 
-  // if (currentAccount?.pin === Number(inputLoginPin.value)) {
+  // if (currentAccount?.pin === Number(inputLoginPassword.value)) {
   //   // Display UI and message
   //   labelWelcome.textContent = `Welcome back, ${
   //     currentAccount.owner.split(' ')[0]
@@ -169,8 +170,8 @@ btnLogin.addEventListener('click', function (e) {
   //   containerApp.style.opacity = 100;
 
   //   // Clear input fields
-  //   inputLoginUsername.value = inputLoginPin.value = '';
-  //   inputLoginPin.blur();
+  //   inputLoginUsername.value = inputLoginPassword.value = '';
+  //   inputLoginPassword.blur();
 
   //   // Update UI
   //   updateUI(currentAccount);
