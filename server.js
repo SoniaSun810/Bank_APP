@@ -18,11 +18,18 @@ app.set('view engine', 'ejs')
 app.use(express.static(__dirname + '/public'));
 
 app.use(express.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({extended: false}));
+
 
 app.get('/', (req, res) => {
     res.render('pages/index');
 });
+
+app.get('/home', (req, res) => {
+    console.log(req.params);
+    res.render('pages/home');
+});
+
 
 const [rows] = await pool.query(`
     SELECT *
@@ -76,17 +83,14 @@ app.post('/account/login', async (req, res) => {
     if(user == null){
         res.status(401).json({ message: 'Invalid username or password' });
     }
-    console.log(req.body.username, req.body.password);
+    
     try {
         if(await bcrypt.compare(req.body.password, user.password)){
             const payload = { username };
             const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
             // console.log(token);
-            res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600 });
+            res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600, username: username });
             res.status(200).json({ access_token: token, expires_in: 3600 });
-
-            // redirect to homepage
-            res.render("pages/home")
         } else {
             res.status(401).json({ message: 'Invalid username or password' });
         }
@@ -124,7 +128,7 @@ app.post('/account/balance', verifyToken, async(req, res) => {
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
     const currBalance = account.balance;
-    res.status(201).json({message: `Your balance is ${currBalance}`})
+    res.status(201).json({message: `Your balance is ${currBalance}`, balance: currBalance})
 });
 
 // endpoint 4 - Deposit Money

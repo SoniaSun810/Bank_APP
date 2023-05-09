@@ -94,8 +94,8 @@ nav {
   gap: 2rem;
 
   /* NOTE This creates the fade in/out anumation */
-  opacity: 0;
-  transition: all 1s;
+  /* opacity: 0;
+  transition: all 1s; */
 }
 
 .balance {
@@ -213,16 +213,16 @@ nav {
   color: #333;
 }
 
-.operation--transfer {
+/* .operation--deposit {
   background-image: linear-gradient(to top left, #ffb003, #ffcb03);
-}
+} */
 
-.operation--loan {
+.operation--deposit {
   background-image: linear-gradient(to top left, #39b385, #9be15d);
 }
 
-.operation--close {
-  background-image: linear-gradient(to top left, #e52a5a, #ff585f);
+.operation--withdraw {
+  background-image: linear-gradient(to top left, #e52a5a, #f67177);
 }
 
 h2 {
@@ -234,7 +234,7 @@ h2 {
 
 .form {
   display: grid;
-  grid-template-columns: 2.5fr 2.5fr 1fr;
+  grid-template-columns: 5fr 1fr;
   grid-template-rows: auto auto;
   gap: 0.4rem 1rem;
 }
