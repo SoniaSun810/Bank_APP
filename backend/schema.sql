@@ -12,6 +12,7 @@ CREATE TABLE accounts (
 
 CREATE TABLE transactions (
     id integer PRIMARY KEY AUTO_INCREMENT,
+    -- description VARCHAR(255) NOT NULL,
     account_id integer NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
