@@ -51,3 +51,26 @@ export async function createAccount(username, password) {
 
     return getAccount(username);
 }
+
+// create transaction
+export async function createTransaction(accountId, amount) {
+    // validate input
+
+    await pool.query(`
+        INSERT INTO transactions (account_id, amount)
+        VALUES (?, ?);
+    `, [accountId, amount]);
+}
+
+// get transactions of one account
+export async function getTransactions(account_id) {
+    // validate input
+
+    const [rows] = await pool.query(`
+        SELECT *
+        FROM transactions
+        WHERE account_id = ?
+    `, [account_id]);
+
+    return rows;
+}

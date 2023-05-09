@@ -1,7 +1,7 @@
 import { pool } from './database.js';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { getAccounts, getAccount, createAccount } from './database.js';
+import { getAccounts, getAccount, createAccount, getTransactions, createTransaction } from './database.js';
 // import { verifyToken } from './middleware.js';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
@@ -125,16 +125,19 @@ app.post('/account/deposit', verifyToken, async(req, res) => {
 
     // Your protected route logic here
     const username = req.body.user;
+    const amount = req.body.amount;
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
+    const account_id = account.account_id;
     const newBalance = account.balance + amount;
     await pool.query(`
         UPDATE accounts
         SET balance = ? 
         WHERE username = ?;
     `, [newBalance, username]);
-
+    // create deposit transaction
+    createTransaction(account_id, amount);
     res.status(201).json({ message: 'Deposit successful' });
 });
 
@@ -147,6 +150,7 @@ app.post('/account/withdraw', verifyToken, async(req, res) => {
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
+    const account_id = account.account_id;
     const newBalance = account.balance - amount;
     if (newBalance < 0) res.status(400).json({ message: 'Insufficient funds' });
 
@@ -155,9 +159,23 @@ app.post('/account/withdraw', verifyToken, async(req, res) => {
         SET balance = ?
         WHERE username = ?;
     `, [newBalance, username]);
-
+    // create withdraw transaction
+    createTransaction(account_id, -amount);
     res.status(201).json({ message: 'Withdraw successful' });
 });
+
+// endpoint 6 
+// get 5 transactions of one account
+app.post('/account/transactions', verifyToken, async(req, res) => {
+    const username = req.body.user;
+    const account = await getAccount(username);
+    if (account == null) res.status(400).json({ message: 'Account does not exist' });
+    const account_id = account.account_id;
+    const transactions = await getTransactions(account_id);
+    if (transactions == null) res.status(400).json({ message: 'No available transaction' });
+    res.status(200).json(transactions);
+});
+
 
 
 app.use((err, req, res, next) => {
