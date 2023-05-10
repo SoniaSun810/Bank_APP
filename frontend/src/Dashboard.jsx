@@ -77,7 +77,8 @@ const Dashboard = () => {
             }
         })
         .then(res => {
-            setReloadDashboard(true)
+            setReloadDashboard(true);
+            setDeposit(0);
             console.log(res.data);
         })
         .catch(error => {
@@ -98,7 +99,8 @@ const Dashboard = () => {
             }
         })
         .then(res => {
-            setReloadDashboard(true)
+            setReloadDashboard(true);
+            setWithdrawal(0);
             console.log(res.data);
         })
         .catch(error => {
