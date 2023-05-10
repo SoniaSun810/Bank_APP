@@ -1,10 +1,18 @@
+.App {
+  text-align: center;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
 /*
  * Use this CSS to learn some intersting techniques,
  * in case you're wondering how I built the UI.
  * Have fun! 😁
  */
 
-* {
+ * {
   margin: 0;
   padding: 0;
   box-sizing: inherit;
@@ -36,25 +44,26 @@ nav {
 }
 
 .logo {
-  height: 5.25rem;
+  height: 5rem;
+  width: 5rem;
 }
 
-.login {
+.auth-form-container, .login-form, .register-form {
   display: flex;
+  flex-direction: column;
 }
 
-.login__input {
+label {
+  text-align: left;
+  padding: 0.25rem 0;
+  font-size: 1.5rem;
+}
+
+.login__input, input {
+  margin: 0.5rem 0;
+  border-radius: 10px;
   border: none;
-  padding: 0.5rem 2rem;
-  font-size: 1.6rem;
-  font-family: inherit;
-  text-align: center;
-  width: 12rem;
-  border-radius: 10rem;
-  margin-right: 1rem;
-  color: inherit;
-  border: 1px solid #fff;
-  transition: all 0.3s;
+  padding: 1rem;
 }
 
 .login__input:focus {
@@ -69,10 +78,11 @@ nav {
 .login__btn {
   border: none;
   background: none;
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: inherit;
   cursor: pointer;
   transition: all 0.3s;
+  padding: 1rem;
 }
 
 .login__btn:hover,
@@ -81,6 +91,14 @@ nav {
 .btn--sort:focus {
   outline: none;
   color: #777;
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: black;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* MAIN */
@@ -165,6 +183,11 @@ nav {
 .movements__value {
   font-size: 1.7rem;
   margin-left: auto;
+}
+
+.error__message {
+  font-size: 1.7rem;
+  margin: auto;
 }
 
 /* SUMMARY */
@@ -285,13 +308,3 @@ h2 {
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-.logout-timer {
-  padding: 0 0.3rem;
-  margin-top: 1.9rem;
-  text-align: right;
-  font-size: 1.25rem;
-}
-
-.timer {
-  font-weight: 600;
-}
