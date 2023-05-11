@@ -1,29 +1,24 @@
-import { pool } from './database.js';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { getAccounts, getAccount, createAccount, getTransactions, createTransaction } from './database.js';
+import { getAccounts, getAccount, createAccount, getTransactions, createTransaction, updateBalance, deleteAccount } from './database.js';
 // import { verifyToken } from './middleware.js';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-dotenv.config()
+import bodyParser from 'body-parser';
+import cors from 'cors';
+dotenv.config();
 
-// const express = require('express');
-// const jwt = require('jsonwebtoken');
 
 const app = express();
+const __dirname = process.cwd();
 const SECRET_KEY = process.env.SECRET_KEY;
+
+app.set('view engine', 'ejs')
+app.use(express.static(__dirname + '/public'));
+
 app.use(express.json());
-
-app.get('/', (req, res) => {
-    res.send('Send the homepage!');
-});
-
-const [rows] = await pool.query(`
-    SELECT *
-    FROM accounts
-`);
-console.log(rows);
-
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cors());
 
 // gets all the accounts
 app.get('/accounts', async (req, res) => {
@@ -46,13 +41,18 @@ app.post('/account', async (req, res) => {
     //validate password
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const user = {
-            username: req.body.username,
-            password: hashedPassword
-        }
+        const username = req.body.username;
+        const password = hashedPassword;
 
-        const newUser = await createAccount(user.username, user.password)
+        const newUser = await createAccount(username, password);
+        // send back the token
+        const payload = { username };
+        const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
+
+        res.status(200).json({ message : 'Register successful', access_token: token, expires_in: 3600 });
+        /* BAD CODE
         res.status(201).json(newUser);
+        */
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }
@@ -63,21 +63,20 @@ app.post('/account', async (req, res) => {
 // responds with a JWT token
 app.post('/account/login', async (req, res) => {
     // validate username and password
-    const { username, password } = req.body;
+    const username = req.body.username;
   
     const user = await getAccount(req.body.username);
 
     if(user == null){
         res.status(401).json({ message: 'Invalid username or password' });
     }
-
+    
     try {
         if(await bcrypt.compare(req.body.password, user.password)){
             const payload = { username };
             const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
             // console.log(token);
             res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600 });
-            res.status(200).json({ access_token: token, expires_in: 3600 });
             // redirect to homepage
         } else {
             res.status(401).json({ message: 'Invalid username or password' });
@@ -111,31 +110,31 @@ function verifyToken(req, res, next) {
 app.post('/account/balance', verifyToken, async(req, res) => {
     // Your protected route logic here
     const username = req.body.user;
-    const amount = req.body.amount;
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
     const currBalance = account.balance;
-    res.status(201).json({message: `Your balance is ${currBalance}`})
+    res.status(201).json({message: `Your balance is ${currBalance}`, balance: currBalance})
 });
 
 // endpoint 4 - Deposit Money
 // Deposites money into the account
 app.post('/account/deposit', verifyToken, async(req, res) => {
 
-    // Your protected route logic here
     const username = req.body.user;
-    const amount = req.body.amount;
+    const amount = Number(req.body.amount);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
-    console.log(account);
+    console.log(account, typeof(amount));
+    console.log(amount);
     const account_id = account.account_id;
-    const newBalance = account.balance + amount;
-    await pool.query(`
-        UPDATE accounts
-        SET balance = ? 
-        WHERE username = ?;
-    `, [newBalance, username]);
+    // balance is decimal(10, 2)
+    const oldBalance = Number(account.balance);
+    const newBalance = oldBalance + amount;
+    
+    // update balance for user
+    updateBalance(username, newBalance);
+
     // create deposit transaction
     createTransaction(account_id, amount);
     res.status(201).json({ message: 'Deposit successful' });
@@ -146,22 +145,24 @@ app.post('/account/deposit', verifyToken, async(req, res) => {
 app.post('/account/withdraw', verifyToken, async(req, res) => {
     // validate amount
     const username = req.body.user;
-    const amount = req.body.amount;
+    const amount = Number(req.body.amount);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
     const account_id = account.account_id;
-    const newBalance = account.balance - amount;
-    if (newBalance < 0) res.status(400).json({ message: 'Insufficient funds' });
+    const oldBalance = Number(account.balance);
+    const newBalance = oldBalance - amount;
 
-    await pool.query(`
-        UPDATE accounts
-        SET balance = ?
-        WHERE username = ?;
-    `, [newBalance, username]);
-    // create withdraw transaction
-    createTransaction(account_id, -amount);
-    res.status(201).json({ message: 'Withdraw successful' });
+    if (newBalance < 0) {
+        res.status(400).json({ message: 'Insufficient funds' });
+    } else {
+        // update balance for user
+        updateBalance(username, newBalance);
+
+        // create withdraw transaction
+        createTransaction(account_id, -amount);
+        res.status(201).json({ message: 'Withdraw successful' });
+    }
 });
 
 // endpoint 6 
@@ -176,6 +177,16 @@ app.post('/account/transactions', verifyToken, async(req, res) => {
     res.status(200).json(transactions);
 });
 
+// endpoint 7
+// delete account
+app.delete('/account/delete', verifyToken, async(req, res) => {
+    const username = req.body.user;
+    const account = await getAccount(username);
+    if (account == null) res.status(400).json({ message: 'Account does not exist' });
+    deleteAccount(username);
+    res.status(200).json({ message: 'Account deleted' });
+});
+    
 
 
 app.use((err, req, res, next) => {

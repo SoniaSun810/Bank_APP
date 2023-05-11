@@ -6,7 +6,7 @@ CREATE TABLE accounts (
     account_id integer PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(127) NOT NULL UNIQUE,
     password VARCHAR(127) NOT NULL,
-    balance integer DEFAULT 0,
+    balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

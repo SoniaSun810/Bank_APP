@@ -14,7 +14,7 @@ const rows = await pool.query(`
     SELECT *
     FROM accounts
 `);
-console.log(rows);
+// console.log(rows);
 
 // get all accounts
 export async function getAccounts() {
@@ -55,7 +55,6 @@ export async function createAccount(username, password) {
 // create transaction
 export async function createTransaction(accountId, amount) {
     // validate input
-
     await pool.query(`
         INSERT INTO transactions (account_id, amount)
         VALUES (?, ?);
@@ -74,3 +73,22 @@ export async function getTransactions(account_id) {
 
     return rows;
 }
+
+// update balance
+export async function updateBalance(username, amount){
+    const [rows] = await pool.query(`
+        UPDATE accounts
+        SET balance = ? 
+        WHERE username = ?;
+    `, [amount, username]);
+}
+
+// delete account
+export async function deleteAccount(username) {
+
+    await pool.query(`
+        DELETE FROM accounts
+        WHERE username = ?;
+    `, [username]);
+}
+
