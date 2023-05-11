@@ -77,7 +77,6 @@ app.post('/account/login', async (req, res) => {
             const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
             // console.log(token);
             res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600 });
-            res.status(200).json({ access_token: token, expires_in: 3600 });
             // redirect to homepage
         } else {
             res.status(401).json({ message: 'Invalid username or password' });
