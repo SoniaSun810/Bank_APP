@@ -1,29 +1,24 @@
-import { pool } from './database.js';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { getAccounts, getAccount, createAccount, getTransactions, createTransaction } from './database.js';
+import { getAccounts, getAccount, createAccount, getTransactions, createTransaction, updateBalance } from './database.js';
 // import { verifyToken } from './middleware.js';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-dotenv.config()
+import bodyParser from 'body-parser';
+import cors from 'cors';
+dotenv.config();
 
-// const express = require('express');
-// const jwt = require('jsonwebtoken');
 
 const app = express();
+const __dirname = process.cwd();
 const SECRET_KEY = process.env.SECRET_KEY;
+
+app.set('view engine', 'ejs')
+app.use(express.static(__dirname + '/public'));
+
 app.use(express.json());
-
-app.get('/', (req, res) => {
-    res.send('Send the homepage!');
-});
-
-const [rows] = await pool.query(`
-    SELECT *
-    FROM accounts
-`);
-console.log(rows);
-
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cors());
 
 // gets all the accounts
 app.get('/accounts', async (req, res) => {
@@ -70,7 +65,7 @@ app.post('/account/login', async (req, res) => {
     if(user == null){
         res.status(401).json({ message: 'Invalid username or password' });
     }
-
+    
     try {
         if(await bcrypt.compare(req.body.password, user.password)){
             const payload = { username };
@@ -110,12 +105,11 @@ function verifyToken(req, res, next) {
 app.post('/account/balance', verifyToken, async(req, res) => {
     // Your protected route logic here
     const username = req.body.user;
-    const amount = req.body.amount;
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
     const currBalance = account.balance;
-    res.status(201).json({message: `Your balance is ${currBalance}`})
+    res.status(201).json({message: `Your balance is ${currBalance}`, balance: currBalance})
 });
 
 // endpoint 4 - Deposit Money
@@ -124,17 +118,16 @@ app.post('/account/deposit', verifyToken, async(req, res) => {
 
     // Your protected route logic here
     const username = req.body.user;
-    const amount = req.body.amount;
+    const amount = Number(req.body.amount);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
     const account_id = account.account_id;
     const newBalance = account.balance + amount;
-    await pool.query(`
-        UPDATE accounts
-        SET balance = ? 
-        WHERE username = ?;
-    `, [newBalance, username]);
+    
+    // update balance for user
+    updateBalance(username, newBalance);
+
     // create deposit transaction
     createTransaction(account_id, amount);
     res.status(201).json({ message: 'Deposit successful' });
@@ -145,22 +138,23 @@ app.post('/account/deposit', verifyToken, async(req, res) => {
 app.post('/account/withdraw', verifyToken, async(req, res) => {
     // validate amount
     const username = req.body.user;
-    const amount = req.body.amount;
+    const amount = Number(req.body.amount);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     console.log(account);
     const account_id = account.account_id;
     const newBalance = account.balance - amount;
-    if (newBalance < 0) res.status(400).json({ message: 'Insufficient funds' });
 
-    await pool.query(`
-        UPDATE accounts
-        SET balance = ?
-        WHERE username = ?;
-    `, [newBalance, username]);
-    // create withdraw transaction
-    createTransaction(account_id, -amount);
-    res.status(201).json({ message: 'Withdraw successful' });
+    if (newBalance < 0) {
+        res.status(400).json({ message: 'Insufficient funds' });
+    } else {
+        // update balance for user
+        updateBalance(username, newBalance);
+
+        // create withdraw transaction
+        createTransaction(account_id, -amount);
+        res.status(201).json({ message: 'Withdraw successful' });
+    }
 });
 
 // endpoint 6 
@@ -174,8 +168,6 @@ app.post('/account/transactions', verifyToken, async(req, res) => {
     if (transactions == null) res.status(400).json({ message: 'No available transaction' });
     res.status(200).json(transactions);
 });
-
-
 
 app.use((err, req, res, next) => {
     console.error(err.stack)
