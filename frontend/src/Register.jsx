@@ -10,8 +10,17 @@ export const Register = (props) => {
     const [authenticated, setAuthenticated] = useState(localStorage.getItem(localStorage.getItem("authenticated")|| false));
     const navigate = useNavigate();
 
+    const validateInput = (string) => {
+        return /^[\w\-.]{1,127}$/.test(string);
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if(!(validateInput(username) && validateInput(password))){
+            alert("The username or password entered is invalid. Please make sure they contain lowercase letters, digits, or one of these special characters['_', '-', '.'] as well as between 1 and 127 characters.");
+            return;
+        }
 
         if(password == confirmPassword){
             Axios.post("http://localhost:8080/account", {
