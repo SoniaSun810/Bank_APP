@@ -16,10 +16,13 @@ export const Login = (props) => {
             "username": username,
             "password": password
         }).then((res) => {
-            console.log(res);
             setAuthenticated(true)
             localStorage.setItem("authenticated", true);
             navigate("/dashboard", {"state": {"username": username, "token": res.data.access_token}});
+        }).catch((e) => {
+            if(e.response.status == 401){
+                alert(e.response.data.message)
+            }
         })
     }
 
@@ -33,6 +36,8 @@ export const Login = (props) => {
                     onChange={(e) => setUsername(e.target.value)}
                     type="text"
                     placeholder="username"
+                    minLength="1"
+                    maxLength="127"
                     className="login__input login__input--user"
                     name="username"
                     id="username"
@@ -43,7 +48,8 @@ export const Login = (props) => {
                     onChange={(e) => setPassword(e.target.value)}
                     type="password"
                     placeholder="********"
-                    maxlength="127"
+                    minLength="1"
+                    maxLength="127"
                     className="login__input login__input--password"
                     name="password"
                     is="password"
