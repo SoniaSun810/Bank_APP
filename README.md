@@ -1,5 +1,5 @@
 # Set up the Bank App
-## Step 0: Install Node
+## Step 0: Install Node and MySQL
 1. If you don't already have node installed, install it using this link: https://nodejs.org/en
 2. If you don't already have MySQL server installed, please install this as well. https://dev.mysql.com/downloads/mysql/
 
