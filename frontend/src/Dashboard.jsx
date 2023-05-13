@@ -65,8 +65,17 @@ const Dashboard = () => {
         return d.toLocaleDateString('en-US');
     }
 
+    const validateInput = (amount) => {
+        return /^(?!0\d)\d*(\.\d+)?$/.test(amount) && /^\d+(\.\d{2})?$/.test(amount);
+    }
+
     const handleDepositSubmit = (e) => {
         e.preventDefault();
+
+        if(!validateInput(deposit)){
+            alert("Your value " + deposit + " was invalid. Please enter a valid amount to depost.")
+            return;
+        }
 
         Axios.post('http://localhost:8080/account/deposit', { 
             "user": location.state.username, 
@@ -77,18 +86,25 @@ const Dashboard = () => {
             }
         })
         .then(res => {
-            setReloadDashboard(true);
+            setReloadDashboard(!reloadDashboard);
             setDeposit(0);
             console.log(res.data);
         })
         .catch(error => {
+            if(error.response.status == 400){
+                alert(error.response.data.message)
+            }
             console.error(error);
-            // setAuthenticated(false);
         });
     }
 
     const handleWithdrawalSubmit = (e) => {
         e.preventDefault();
+
+        if(!validateInput(withdrawal)){
+            alert("Your value " + withdrawal + " was invalid. Please enter a valid amount to withdraw.")
+            return;
+        }
 
         Axios.post('http://localhost:8080/account/withdraw', { 
             "user": location.state.username, 
@@ -99,7 +115,7 @@ const Dashboard = () => {
             }
         })
         .then(res => {
-            setReloadDashboard(true);
+            setReloadDashboard(!reloadDashboard);
             setWithdrawal(0);
             console.log(res.data);
         })

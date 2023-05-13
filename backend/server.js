@@ -50,9 +50,7 @@ app.post('/account', async (req, res) => {
         const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
 
         res.status(200).json({ message : 'Register successful', access_token: token, expires_in: 3600 });
-        /* BAD CODE
-        res.status(201).json(newUser);
-        */
+       
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }
@@ -68,18 +66,19 @@ app.post('/account/login', async (req, res) => {
     const user = await getAccount(req.body.username);
 
     if(user == null){
-        res.status(401).json({ message: 'Invalid username or password' });
-    }
+        res.status(401).json({ message: 'Account does not exist for user: ' + username }); 
+       }
     
     try {
         if(await bcrypt.compare(req.body.password, user.password)){
             const payload = { username };
             const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
-            // console.log(token);
-            res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600 });
+           res.status(200).json({ message : 'Login successful', user, access_token: token, expires_in: 3600 });
+           console.log(user);
+            // res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600 });
             // redirect to homepage
         } else {
-            res.status(401).json({ message: 'Invalid username or password' });
+            res.status(401).json({ message: 'Invalid password for user: ' + username });
         }
     } catch (error) {
         res.status(500).send();
@@ -125,8 +124,7 @@ app.post('/account/deposit', verifyToken, async(req, res) => {
     const amount = Number(req.body.amount);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
-    console.log(account, typeof(amount));
-    console.log(amount);
+   
     const account_id = account.account_id;
     // balance is decimal(10, 2)
     const oldBalance = Number(account.balance);
@@ -178,6 +176,16 @@ app.post('/account/transactions', verifyToken, async(req, res) => {
 });
 
 // endpoint 7
+// logout
+app.post('/account/logout', verifyToken, async(req, res) => {
+    const username = req.body.user;
+    const account = await getAccount(username);
+    if (account == null) res.status(400).json({ message: 'Account does not exist' });
+    res.status(200).json({ message: 'Logout successful' });
+});
+
+
+// endpoint 8
 // delete account
 app.delete('/account/delete', verifyToken, async(req, res) => {
     const username = req.body.user;
@@ -186,7 +194,6 @@ app.delete('/account/delete', verifyToken, async(req, res) => {
     deleteAccount(username);
     res.status(200).json({ message: 'Account deleted' });
 });
-    
 
 
 app.use((err, req, res, next) => {
