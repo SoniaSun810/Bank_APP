@@ -12,9 +12,15 @@ const Dashboard = () => {
     const [deposit, setDeposit] = useState(0);
     const [withdrawal, setWithdrawal] = useState(0);
     const [reloadDashboard, setReloadDashboard] = useState(false);
+
     const location = useLocation();
 
+    // gets initial list of transactions and is updated anytime a transaction is made
     useEffect(() => {
+        if(location.state === null || location.state.username === null || location.state.token === null){
+            return <Navigate replace to="/" />;
+        }
+
         setUsername(location.state.username)
         setAccessToken(location.state.token)
 
@@ -32,9 +38,14 @@ const Dashboard = () => {
             console.error(error);
             setAuthenticated(false);
         });
-      }, [reloadDashboard]);
+    }, [reloadDashboard]);
 
-      useEffect(() => {
+    // gets users initial balance and is updated anytime a transaction is made
+    useEffect(() => {
+        if(location.state === null && location.state.username === null){
+            return <Navigate replace to="/" />;
+        }
+
         Axios.post('http://localhost:8080/account/balance', { 
             "user": location.state.username 
         }, {
@@ -49,11 +60,13 @@ const Dashboard = () => {
             console.error(error);
             setAuthenticated(false);
         });
-      }, [reloadDashboard]);
+    }, [reloadDashboard]); 
 
-    if(!authenticated){
-        return <Navigate replace to="/" />;
-    } 
+    // Helper functions for UI events
+    const handleLogout = (e) => {
+        e.preventDefault();
+        setAuthenticated(false);
+    }
 
     const getCurrentDate = function () {
         let today = new Date();
@@ -88,7 +101,6 @@ const Dashboard = () => {
         .then(res => {
             setReloadDashboard(!reloadDashboard);
             setDeposit(0);
-            console.log(res.data);
         })
         .catch(error => {
             if(error.response.status == 400){
@@ -117,7 +129,6 @@ const Dashboard = () => {
         .then(res => {
             setReloadDashboard(!reloadDashboard);
             setWithdrawal(0);
-            console.log(res.data);
         })
         .catch(error => {
             if(error.response.status == 400){
@@ -127,11 +138,19 @@ const Dashboard = () => {
         });
     }
 
+    // UI displayed to the user
+
+    // checks to make sure user is authenticated
+    if(!authenticated || username === null){
+        return <Navigate replace to="/" />;
+    }
+
     return (
         <div>
             <nav>
                 <p className="welcome">Welcome {username}!</p>
                 <img src={logo} alt="Logo" className="logo" />
+                <button className="logout__button" onClick={handleLogout}>Logout</button>
             </nav>
     
             <main className="app">

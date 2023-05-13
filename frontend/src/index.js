@@ -6,6 +6,15 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Dashboard from "./Dashboard";
 
+function requireAuth(nextState, replace, next) {
+  if (!localStorage.getItem("authenticated")) {
+    replace({
+      pathname: "/",
+    });
+  }
+  next();
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
