@@ -22,23 +22,25 @@ export async function getAccounts() {
     return rows;
 }
 
-/* BAD CODE
-query: SELECT * FROM accounts WHERE username = 'admin' OR 1=1; -- ' AND password = 'password'
-
-*/
-
 // get a user by the username
 export async function getAccount(username) {
-    // do input checking for username
+    const query = `SELECT * FROM users WHERE username = '${username}'`;
+    const result = await connection.query(query);
+    return result.rows[0];
+  }
 
-    const [rows] = await pool.query(`
-        SELECT *
-        FROM accounts
-        WHERE username = ?
-    `, [username]);
+// get a user by the username
+// export async function getAccount(username) {
+//     // do input checking for username
 
-    return rows[0];
-}
+//     const [rows] = await pool.query(`
+//         SELECT *
+//         FROM accounts
+//         WHERE username = ?
+//     `, [username]);
+
+//     return rows[0];
+// }
 
 // add account
 export async function createAccount(username, password) {
