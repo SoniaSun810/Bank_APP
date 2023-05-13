@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Navigate to the backend directory and run backend
-cd backend
-npm run app_dev &
-
 # Navigate to the frontend directory and run frontend
-cd ../frontend
+cd frontend
 npm start &
+
+# Navigate to the backend directory and run backend
+cd ../backend
+npm run app_dev 
