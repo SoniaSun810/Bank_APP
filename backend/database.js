@@ -24,9 +24,9 @@ export async function getAccounts() {
 
 // get a user by the username
 export async function getAccount(username) {
-    const query = `SELECT * FROM users WHERE username = '${username}'`;
-    const result = await connection.query(query);
-    return result.rows[0];
+    const query = `SELECT * FROM accounts WHERE username = '${username}'`;
+    const [rows] = await pool.query(query);
+    return rows[0];
   }
 
 // get a user by the username
