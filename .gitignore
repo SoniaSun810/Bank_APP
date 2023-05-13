@@ -3,6 +3,7 @@
 node_modules
 .env
 build
+/.env
 
 # dependencies
 /node_modules
