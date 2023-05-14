@@ -51,5 +51,3 @@ mysql> SHOW TABLES;
 1. The backend needs to run separately from the frontend so in the `backend` directory run `npm run dev` to start the server
 2. In the `frontend` directory run `npm start`
 
-### Other option to run the app locally
-Use command `./run.sh`
