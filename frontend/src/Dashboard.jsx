@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Axios from 'axios';
 import logo from './logo.png';
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
     const [username, setUsername] = useState(null);
@@ -14,11 +14,13 @@ const Dashboard = () => {
     const [reloadDashboard, setReloadDashboard] = useState(false);
 
     const location = useLocation();
+    const navigate = useNavigate();
 
     // gets initial list of transactions and is updated anytime a transaction is made
     useEffect(() => {
         if(location.state === null || location.state.username === null || location.state.token === null){
-            return <Navigate replace to="/" />;
+            navigate("/")
+            return ()=>{};
         }
 
         setUsername(location.state.username)
@@ -42,8 +44,9 @@ const Dashboard = () => {
 
     // gets users initial balance and is updated anytime a transaction is made
     useEffect(() => {
-        if(location.state === null && location.state.username === null){
-            return <Navigate replace to="/" />;
+        if(location.state === null || location.state.username === null){
+            navigate("/")
+            return ()=>{};
         }
 
         Axios.post('http://localhost:8080/account/balance', { 
@@ -141,7 +144,7 @@ const Dashboard = () => {
     // UI displayed to the user
 
     // checks to make sure user is authenticated
-    if(!authenticated || username === null){
+    if(!authenticated){
         return <Navigate replace to="/" />;
     }
 
