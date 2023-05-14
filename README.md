@@ -16,6 +16,19 @@ MYSQL_DATABASE='bank_app'
 SECRET_KEY='123456'
 ```
 
+### Other option to install dependencies(maybe easier)
+You can use our shell script file to build and run this app.
+In the terminal, navigate to the project's root directory and give the `build.sh` file and `run.sh` file execute permissions:
+```
+chmod +x build.sh
+chmod +x run.sh
+```
+Then run the `build.sh` file and `run.sh` file.
+```
+./build.sh
+```
+
+
 ## Step 2: Set up the MySQL database
 1. Run MySQL server on your local device
 2. Open a terminal (macOS, Linux) or command prompt (Windows) and connect to your MySQL.
@@ -37,3 +50,6 @@ mysql> SHOW TABLES;
 ## Step 3: Run the Bank App locally
 1. The backend needs to run separately from the frontend so in the `backend` directory run `npm run dev` to start the server
 2. In the `frontend` directory run `npm start`
+
+### Other option to run the app locally
+Use command `./run.sh`
