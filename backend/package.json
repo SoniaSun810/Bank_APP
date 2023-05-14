@@ -5,8 +5,6 @@
   "type": "module",
   "main": "./server.js",
   "scripts": {
-    "app": "node ./server.js & open-cli ./frontend/index.html",
-    "app_dev": "npx nodemon ./server.js",
     "dev": "npx nodemon ./server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "open-client": "open-cli ./frontend/index.html"

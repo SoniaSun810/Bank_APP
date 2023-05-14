@@ -4,20 +4,14 @@ import { getAccounts, getAccount, createAccount, getTransactions, createTransact
 // import { verifyToken } from './middleware.js';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 dotenv.config();
 
 
 const app = express();
-const __dirname = process.cwd();
 const SECRET_KEY = process.env.SECRET_KEY;
 
-app.set('view engine', 'ejs')
-app.use(express.static(__dirname + '/public'));
-
 app.use(express.json());
-app.use(bodyParser.urlencoded({extended: false}));
 app.use(cors());
 
 // gets all the accounts
@@ -146,7 +140,7 @@ app.post('/account/withdraw', verifyToken, async(req, res) => {
     const amount = Number(req.body.amount);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
-    console.log(account);
+    
     const account_id = account.account_id;
     const oldBalance = Number(account.balance);
     const newBalance = oldBalance - amount;

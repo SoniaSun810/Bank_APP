@@ -44,8 +44,6 @@ export async function getAccount(username) {
 
 // add account
 export async function createAccount(username, password) {
-    // validate input and hash password
-
     await pool.query(`
         INSERT INTO accounts (username, password)
         VALUES (?, ?);
@@ -56,7 +54,6 @@ export async function createAccount(username, password) {
 
 // create transaction
 export async function createTransaction(accountId, amount) {
-    // validate input
     await pool.query(`
         INSERT INTO transactions (account_id, amount)
         VALUES (?, ?);
@@ -65,8 +62,6 @@ export async function createTransaction(accountId, amount) {
 
 // get transactions of one account
 export async function getTransactions(account_id) {
-    // validate input
-
     const [rows] = await pool.query(`
         SELECT *
         FROM transactions
@@ -87,7 +82,6 @@ export async function updateBalance(username, amount){
 
 // delete account
 export async function deleteAccount(username) {
-
     await pool.query(`
         DELETE FROM accounts
         WHERE username = ?;
