@@ -43,11 +43,11 @@ export async function getAccount(username) {
 // }
 
 // add account
-export async function createAccount(username, password) {
+export async function createAccount(username, password, balance=0) {
     await pool.query(`
-        INSERT INTO accounts (username, password)
-        VALUES (?, ?);
-    `, [username, password]);
+        INSERT INTO accounts (username, password, balance)
+        VALUES (?, ?, ?);
+    `, [username, password, balance]);
 
     return getAccount(username);
 }
