@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 export const Register = (props) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [amount, setAmount] = useState(0);
     const [confirmPassword, setConfirmPassword] = useState("");
     const [authenticated, setAuthenticated] = useState(localStorage.getItem(localStorage.getItem("authenticated")|| false));
     const navigate = useNavigate();
@@ -14,10 +15,14 @@ export const Register = (props) => {
         return /^[\w\-.]{1,127}$/.test(string);
     }
 
+    const validateAmountInput = (amount) => {
+        return /^(?!0\d)\d*(\.\d+)?$/.test(amount) && /^\d+(\.\d{2})?$/.test(amount);
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if(!(validateInput(username) && validateInput(password))){
+        if(!(validateInput(username) && validateInput(password) && validateAmountInput(amount))){
             alert("The username or password entered is invalid. Please make sure they contain lowercase letters, digits, or one of these special characters['_', '-', '.'] as well as between 1 and 127 characters.");
             return;
         }
@@ -25,7 +30,8 @@ export const Register = (props) => {
         if(password == confirmPassword){
             Axios.post("http://localhost:8080/account", {
                 "username": username,
-                "password": password
+                "password": password,
+                "balance": amount
             }).then((res) => {
                 console.log(res);
                 setAuthenticated(true)
@@ -62,7 +68,7 @@ export const Register = (props) => {
                     maxlength="127"
                     className="login__input login__input--password"
                     name="password"
-                    is="password"
+                    id="password"
                 />
                 <label htmlFor="password">Confirm Password</label>
                 <input
@@ -74,6 +80,16 @@ export const Register = (props) => {
                     className="login__input login__input--password"
                     name="password"
                     is="password"
+                />
+                <label htmlFor="amount">Initial Amount</label>
+                <input
+                    value = {amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    type="number"
+                    placeholder="0"
+                    className="login__input login__input--amount"
+                    name="amount"
+                    id="amount"
                 />
                 <button type="submit" className="login__btn">Register &rarr;</button>
             </form>

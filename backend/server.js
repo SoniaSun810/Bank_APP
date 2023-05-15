@@ -32,13 +32,13 @@ app.post('/account', async (req, res) => {
         return res.status(400).json({ message: 'Username already exists' });
     }
 
-    //validate password
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const username = req.body.username;
         const password = hashedPassword;
+        const balance = req.body.balance;
 
-        const newUser = await createAccount(username, password);
+        const newUser = await createAccount(username, password, balance);
         // send back the token
         const payload = { username };
         const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
