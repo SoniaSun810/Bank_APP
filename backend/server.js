@@ -1,10 +1,13 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
+import rateLimit from 'express-rate-limit';
+
 import { getAccounts, getAccount, createAccount, getTransactions, createTransaction, updateBalance, deleteAccount } from './database.js';
 // import { verifyToken } from './middleware.js';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+
 dotenv.config();
 
 
@@ -13,6 +16,13 @@ const SECRET_KEY = process.env.SECRET_KEY;
 
 app.use(express.json());
 app.use(cors());
+
+// Create a rate limiter with a maximum of 3 requests per 1 minutes
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 15 minutes
+  max: 3,
+  message: "Too many requests from this IP, please try again later."
+});
 
 // gets all the accounts
 app.get('/accounts', async (req, res) => {
@@ -53,7 +63,7 @@ app.post('/account', async (req, res) => {
 // endpoint 2 - Login
 // gets account using the username and verifies that the user exists and the password matches
 // responds with a JWT token
-app.post('/account/login', async (req, res) => {
+app.post('/account/login', rateLimit, async (req, res) => {
     // validate username and password
     const username = req.body.username;
   
