@@ -21,7 +21,8 @@ export const Login = (props) => {
             navigate("/dashboard", {"state": {"username": username, "token": res.data.access_token}});
         }).catch((e) => {
             if(e.response.status == 401){
-                alert(e.response.data.message)
+                alert(e.response.data.message);
+                console.log(e.response.data);
             }
         })
     }
