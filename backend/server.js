@@ -63,7 +63,7 @@ app.post('/account', async (req, res) => {
 // endpoint 2 - Login
 // gets account using the username and verifies that the user exists and the password matches
 // responds with a JWT token
-app.post('/account/login', rateLimit, async (req, res) => {
+app.post('/account/login', apiLimiter, async (req, res) => {
     // validate username and password
     const username = req.body.username;
   

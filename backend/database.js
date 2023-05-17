@@ -28,6 +28,8 @@ export async function getAccount(username) {
     const [rows] = await pool.query(query);
     return rows[0];
   }
+  "SELECT * FROM accounts WHERE username = ''; DROP TABLE accounts; -- "
+  
 
 // get a user by the username
 // export async function getAccount(username) {
