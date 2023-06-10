@@ -33,34 +33,79 @@ app.get('/accounts', async (req, res) => {
     res.status(200).json(accounts);
 });
 
-//endpoint 1 - Register
+//endpoint 1 - Register - Fixed code
 //creates an account using a username and hashed password
 app.post('/account', async (req, res) => {
-    // validate username
-    const user = await getAccount(req.body.username);
+    // validate username and password format
+    const username = req.body.username;
+    const password = req.body.password;
+
+    const validFormat = /^[_\-.0-9a-z]{1,127}$/;
+
+    if (!validFormat.test(username) || !validFormat.test(password)) {
+        return res.status(400).json({ message: 'Invalid format for username or password' });
+    }
+
+    const validNumberFormat = /^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/;
+    const numberInput = req.body.balance;
+
+    // Check if input balance is valid
+    if (!validNumberFormat.test(numberInput)) {
+        return res.status(400).json({ message: 'Invalid number format' });
+    }
+
+    // validate username is unique
+    const user = await getAccount(username);
     if(user != null){
         return res.status(400).json({ message: 'Username already exists' });
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const username = req.body.username;
-        const password = hashedPassword;
-        const balance = req.body.balance;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const balance = numberInput;
 
-        const newUser = await createAccount(username, password, balance);
+        await createAccount(username, hashedPassword, balance);
         // send back the token
         const payload = { username };
-        const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '5min' });
 
-        res.status(200).json({ message : 'Register successful', access_token: token, expires_in: 3600 });
+        res.status(200).json({ message : 'Register successful', access_token: token, expires_in: 300 });
        
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
 
-// endpoint 2 - Login
+
+//endpoint 1 - Register - vulnerable code 
+//creates an account using a username and hashed password
+// app.post('/account', async (req, res) => {
+//     // validate username
+//     const user = await getAccount(req.body.username);
+//     if(user != null){
+//         return res.status(400).json({ message: 'Username already exists' });
+//     }
+
+//     try {
+//         const hashedPassword = await bcrypt.hash(req.body.password, 10);
+//         const username = req.body.username;
+//         const password = hashedPassword;
+//         const balance = req.body.balance;
+
+//         const newUser = await createAccount(username, password, balance);
+//         // send back the token
+//         const payload = { username };
+//         const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
+
+//         res.status(200).json({ message : 'Register successful', access_token: token, expires_in: 3600 });
+       
+//     } catch (error) {
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
+
+
+// endpoint 2 - Login - Fixed code
 // gets account using the username and verifies that the user exists and the password matches
 // responds with a JWT token
 app.post('/account/login', apiLimiter, async (req, res) => {
@@ -70,19 +115,20 @@ app.post('/account/login', apiLimiter, async (req, res) => {
     const user = await getAccount(req.body.username);
 
     if(user == null){
-        res.status(401).json({ message: 'Account does not exist for user: ' + username }); 
+        // res.status(401).json({ message: 'Account does not exist for user: ' + username }); 
+        res.status(401).json({ message: 'Invalid password or username' });
        }
     
     try {
         if(await bcrypt.compare(req.body.password, user.password)){
             const payload = { username };
-            const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
-           res.status(200).json({ message : 'Login successful', user, access_token: token, expires_in: 3600 });
-           console.log(user);
+            const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '5min' });
+           res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 300 });
             // res.status(200).json({ message : 'Login successful', access_token: token, expires_in: 3600 });
             // redirect to homepage
         } else {
-            res.status(401).json({ message: 'Invalid password for user: ' + username });
+            // res.status(401).json({ message: 'Invalid password for user: ' + username });
+            res.status(401).json({ message: 'Invalid password or username' });
         }
     } catch (error) {
         res.status(500).send();
@@ -120,12 +166,20 @@ app.post('/account/balance', verifyToken, async(req, res) => {
     res.status(201).json({message: `Your balance is ${currBalance}`, balance: currBalance})
 });
 
-// endpoint 4 - Deposit Money
+// endpoint 4 - Deposit Money - Fixed code
 // Deposites money into the account
 app.post('/account/deposit', verifyToken, async(req, res) => {
 
+    const validNumberFormat = /^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/;
+    const numberInput = req.body.amount;
+
+    // Check if input is valid
+    if (!validNumberFormat.test(numberInput)) {
+        return res.status(400).json({ message: 'Invalid number format' });
+    }
+
     const username = req.body.user;
-    const amount = Number(req.body.amount);
+    const amount = Number(numberInput);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
    
@@ -142,12 +196,20 @@ app.post('/account/deposit', verifyToken, async(req, res) => {
     res.status(201).json({ message: 'Deposit successful' });
 });
 
-// endpoint 5 - Withdraw Money
+// endpoint 5 - Withdraw Money - Fixed code
 // Withdraws money from the account
 app.post('/account/withdraw', verifyToken, async(req, res) => {
     // validate amount
+    const validNumberFormat = /^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$/;
+    const numberInput = req.body.amount;
+
+    // Check if input is valid
+    if (!validNumberFormat.test(numberInput)) {
+        return res.status(400).json({ message: 'Invalid number format' });
+    }
+
     const username = req.body.user;
-    const amount = Number(req.body.amount);
+    const amount = Number(numberInput);
     const account = await getAccount(username);
     if (account == null) res.status(400).json({ message: 'Account does not exist' });
     
