@@ -29,31 +29,31 @@ export async function getAccounts() {
     }
 }
 
-// get a user by the username
-export async function getAccount(username) {
-    try {
-        const query = `SELECT * FROM accounts WHERE username = '${username}'`;
-        const [rows] = await pool.query(query);
-        return rows[0];
-    } catch (error) {
-        console.error(`Error occurred while fetching account: ${error.message}`);
-        throw error; // rethrow the error to handle it in the calling function or middleware
-    }
-  }
+// get a user by the username - Bad code
+// export async function getAccount(username) {
+//     try {
+//         const query = `SELECT * FROM accounts WHERE username = '${username}'`;
+//         const [rows] = await pool.query(query);
+//         return rows[0];
+//     } catch (error) {
+//         console.error(`Error occurred while fetching account: ${error.message}`);
+//         throw error; // rethrow the error to handle it in the calling function or middleware
+//     }
+//   }
   
 
-// get a user by the username
-// export async function getAccount(username) {
-//     // do input checking for username
+// get a user by the username - Fixed code
+export async function getAccount(username) {
+    // do input checking for username
 
-//     const [rows] = await pool.query(`
-//         SELECT *
-//         FROM accounts
-//         WHERE username = ?
-//     `, [username]);
+    const [rows] = await pool.query(`
+        SELECT *
+        FROM accounts
+        WHERE username = ?
+    `, [username]);
 
-//     return rows[0];
-// }
+    return rows[0];
+}
 
 // add account
 export async function createAccount(username, password, balance=0) {
