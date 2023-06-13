@@ -5,6 +5,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
     const [username, setUsername] = useState(null);
+    const [confirmPassword, setConfirmPassword] = useState(null);
     const [accessToken, setAccessToken] = useState(null);
     const [authenticated, setAuthenticated] = useState(localStorage.getItem("authenticated"));
     const [transactions, setTransactions] = useState([]);
@@ -12,6 +13,7 @@ const Dashboard = () => {
     const [deposit, setDeposit] = useState(0);
     const [withdrawal, setWithdrawal] = useState(0);
     const [reloadDashboard, setReloadDashboard] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -85,6 +87,73 @@ const Dashboard = () => {
         return /^(?!0\d)\d*(\.\d+)?$/.test(amount) && /^\d+(\.\d{2})?$/.test(amount);
     }
 
+    const validateTextInput = (string) => {
+        return /^[\w\-.]{1,127}$/.test(string);
+    }
+
+    const handleConfirmPassSubmit = (e) => {
+        e.preventDefault();
+
+        if(!validateTextInput(confirmPassword)){
+            alert("The password entered is invalid. Please make sure they contain lowercase letters, digits, or one of these special characters['_', '-', '.'] as well as between 1 and 127 characters.");
+            return;
+        }
+
+        Axios.post("http://localhost:8080/account/login", {
+            "username": location.state.username,
+            "password": confirmPassword
+        }).then((res) => {
+            if(deposit != 0){ // checks if we are despositing
+                Axios.post('http://localhost:8080/account/deposit', { 
+                    "user": location.state.username, 
+                    "amount": deposit
+                }, {
+                    headers: {
+                        'Authorization': `Basic ${location.state.token}` 
+                    }
+                })
+                .then(res => {
+                    setReloadDashboard(!reloadDashboard);
+                    setDeposit(0);
+                    setShowModal(false);
+                    setConfirmPassword("");
+                })
+                .catch(error => {
+                    if(error.response.status == 400){
+                        alert(error.response.data.message)
+                    }
+                    console.error(error);
+                });
+            } else { // else we are withdrawing
+                Axios.post('http://localhost:8080/account/withdraw', { 
+                    "user": location.state.username, 
+                    "amount": withdrawal
+                }, {
+                    headers: {
+                        'Authorization': `Basic ${location.state.token}` 
+                    }
+                })
+                .then(res => {
+                    setReloadDashboard(!reloadDashboard);
+                    setWithdrawal(0);
+                    setShowModal(false);
+                    setConfirmPassword("");
+                })
+                .catch(error => {
+                    if(error.response.status == 400){
+                        alert(error.response.data.message + ". Please withdraw less or deposit more money into account first.")
+                    }
+                    console.error(error);
+                });
+            }
+        }).catch((e) => {
+            if(e.response.status == 401){
+                alert(e.response.data.message);
+                console.log(e.response.data);
+            }
+        })
+    }
+
     const handleDepositSubmit = (e) => {
         e.preventDefault();
 
@@ -93,24 +162,7 @@ const Dashboard = () => {
             return;
         }
 
-        Axios.post('http://localhost:8080/account/deposit', { 
-            "user": location.state.username, 
-            "amount": deposit
-        }, {
-            headers: {
-                'Authorization': `Basic ${location.state.token}` 
-            }
-        })
-        .then(res => {
-            setReloadDashboard(!reloadDashboard);
-            setDeposit(0);
-        })
-        .catch(error => {
-            if(error.response.status == 400){
-                alert(error.response.data.message)
-            }
-            console.error(error);
-        });
+        setShowModal(true);
     }
 
     const handleWithdrawalSubmit = (e) => {
@@ -121,24 +173,7 @@ const Dashboard = () => {
             return;
         }
 
-        Axios.post('http://localhost:8080/account/withdraw', { 
-            "user": location.state.username, 
-            "amount": withdrawal
-        }, {
-            headers: {
-                'Authorization': `Basic ${location.state.token}` 
-            }
-        })
-        .then(res => {
-            setReloadDashboard(!reloadDashboard);
-            setWithdrawal(0);
-        })
-        .catch(error => {
-            if(error.response.status == 400){
-                alert(error.response.data.message + ". Please withdraw less or deposit more money into account first.")
-            }
-            console.error(error);
-        });
+        setShowModal(true);
     }
 
     // UI displayed to the user
@@ -195,23 +230,39 @@ const Dashboard = () => {
         
                 {/* <!-- OPERATION: DEPOSIT --> */}
                 <div className="operation operation--deposit">
-                <h2>Deposit Money</h2>
-                <form className="form form--deposit" onSubmit={handleDepositSubmit}>
-                    <input type="number" className="form__input form__input--amount" value = {deposit} onChange={(e) => setDeposit(e.target.value)}/>
-                    <button type="submit" className="form__btn form__btn--deposit">&rarr;</button>
-                    <label className="form__label">Amount</label>
-                </form>
+                    <h2>Deposit Money</h2>
+                    <form className="form form--deposit" onSubmit={handleDepositSubmit}>
+                        <input type="number" className="form__input form__input--amount" value = {deposit} onChange={(e) => setDeposit(e.target.value)}/>
+                        <button type="submit" className="form__btn form__btn--deposit">&rarr;</button>
+                        <label className="form__label">Amount</label>
+                    </form>
                 </div>
 
                 {/* <!-- OPERATION: WITHDRAW --> */}
                 <div className="operation operation--withdraw">
-                <h2>Withdraw Money</h2>
-                <form className="form form--withdraw" onSubmit={handleWithdrawalSubmit}>
-                    <input type="number" className="form__input form__input--amount" value = {withdrawal} onChange={(e) => setWithdrawal(e.target.value)}/>
-                    <button className="form__btn form__btn--withdraw">&rarr;</button>
-                    <label className="form__label">Amount</label>
-                </form>
+                    <h2>Withdraw Money</h2>
+                    <form className="form form--withdraw" onSubmit={handleWithdrawalSubmit}>
+                        <input type="number" className="form__input form__input--amount" value = {withdrawal} onChange={(e) => setWithdrawal(e.target.value)}/>
+                        <button className="form__btn form__btn--withdraw">&rarr;</button>
+                        <label className="form__label">Amount</label>
+                    </form>
                 </div>
+                
+                {/* <!-- CONFIRM PASSWORD: MODAL --> */}
+                { showModal && <div className="overlay"><div className="modalContainer operation operation--confirm">
+                    <h2>Confirm Password</h2>
+                    <p className='closeBtn' onClick={() => {
+                        setShowModal(false);
+                        setDeposit(0);
+                        setWithdrawal(0);
+                        setConfirmPassword("");
+                    }}>X</p>
+                    <form className="form form--deposit" onSubmit={handleConfirmPassSubmit}>
+                        <input type="password" className="form__input form__input--amount" value = {confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}/>
+                        <button type="submit" className="form__btn form__btn--deposit">&rarr;</button>
+                        <label className="form__label">Password</label>
+                    </form>
+                </div></div> }
         
             </main>
         </div>
